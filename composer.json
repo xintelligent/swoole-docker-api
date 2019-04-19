@@ -1,0 +1,28 @@
+{
+  "name": "hooklife/swoole-docker-api",
+  "type": "swoole,docker-api,docker",
+  "authors": [
+    {
+      "name": "hooklife",
+      "email": "miaogaopeng123@gmail.com"
+    }
+  ],
+  "require": {
+    "ext-json": "*",
+    "rize/uri-template": "^0.3.2"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Hooklife\\SwooleDockerApi\\": "src/"
+    }
+  },
+  "require-dev": {
+    "eaglewu/swoole-ide-helper": "dev-master"
+  },
+  "repositories": [
+    {
+      "url": "https://github.com/mobingilabs/swoole-guzzle",
+      "type": "git"
+    }
+  ]
+}
