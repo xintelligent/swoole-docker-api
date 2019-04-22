@@ -144,7 +144,6 @@ class Request
 
     public function parseHttpHeader($headerLines)
     {
-
         // remove "HTTP/1.1 200 OK";
         array_shift($headerLines);
         $headers = [];

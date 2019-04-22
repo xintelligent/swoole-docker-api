@@ -6,15 +6,6 @@ namespace Hooklife\SwooleDockerApi\Request;
 
 class RequestRaw
 {
-
-    public static function create(RequestCreate $requestCreate)
-    {
-        var_dump($requestCreate);
-        return self::method($requestCreate) . self::header($requestCreate) . self::body($requestCreate);
-
-    }
-
-
     public static function method($method,$endpoint)
     {
         return sprintf(
