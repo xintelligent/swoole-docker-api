@@ -102,39 +102,62 @@ class Request
         $requestCreate->setPayload($options);
         $raw = $requestCreate->toRaw();
 
+
         $this->socket->send($raw);
-        $data = $this->socket->recv();
-
-
-        return $this->unwrapResponse($data);
+        return $this->unwrapRecv();
     }
 
 
-    protected function unwrapResponse($response)
+    protected function unwrapRecv()
     {
-//        $body = (string)$response->getBody();
-//        $data = json_decode($body, true);
-//        if (json_last_error() != JSON_ERROR_NONE) {
-////            throw new \Exception("ok");
-//        }
-        [$headersRaw, $body] = explode("\r\n\r\n", $response, 2);
+        $recv = $this->socket->recv();
+
+        [$headersRaw, $body] = explode("\r\n\r\n", $recv, 2);
         $headerLines = explode("\r\n", $headersRaw);
-        // remove "HTTP/1.1 200 OK";
-        unset($headerLines[0]);
 
-        $headerArr = [];
-        foreach ($headerLines as $header) {
-            [$key, $value] = explode(":", $header);
-            $headerArr[$key] = $value;
+        $headers = $this->parseHttpHeader($headerLines);
+        [$protocol, $statusCode] = $this->parseProtocol($headerLines);
+
+
+        // TODO Support http1.1
+        if (isset($headers['Transfer-Encoding']) && 'chunked' === $headers['Transfer-Encoding']) {
+
+//            do {
+//                if (!$this->endsWith($body, "0\r\n\r\n")) {
+//                    $body .= $this->socket->recv();
+//                    continue;
+//                }
+//                var_dump($body);
+//                [$recvLength, $recvRaw] = explode("\r\n", $body, 2);
+//                break;
+//            } while (true);
+
+
+//                var_dump($trunkLength);
+//                $body = $this->socket->recv();
+//                var_dump($body);
+
         }
-
-        var_dump($headerArr);
-
-        var_dump(
-            explode("\r\n", $body, 2)
-        );
+        return substr($body, 0, -2);
+    }
 
 
-        return $body;
+    public function parseHttpHeader($headerLines)
+    {
+
+        // remove "HTTP/1.1 200 OK";
+        array_shift($headerLines);
+        $headers = [];
+        foreach ($headerLines as $header) {
+            [$key, $value] = explode(": ", $header);
+            $headers[$key] = $value;
+        }
+        return $headers;
+    }
+
+    public function parseProtocol($headerLines)
+    {
+        [$protocol, $statusCode] = explode(" ", array_shift($headerLines), 2);
+        return [$protocol, $statusCode];
     }
 }

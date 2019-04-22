@@ -18,7 +18,7 @@ class RequestRaw
     public static function method($method,$endpoint)
     {
         return sprintf(
-            "%s %s HTTP/1.1\r\n", $method, $endpoint
+            "%s %s HTTP/1.0\r\n", $method, $endpoint
         );
     }
 
