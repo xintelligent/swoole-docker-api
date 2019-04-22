@@ -30,10 +30,10 @@ go(function () {
 
 
     $client = new \Hooklife\SwooleDockerApi\Request\Request("https://47.92.249.208:2015", [
-        'ssl_cert_file' => '/Users/hooklife/Projects/debug-docker-php/tls/cert.pem',
-        'ssl_key_file'  => '/Users/hooklife/Projects/debug-docker-php/tls/key.pem'
+//        'ssl_cert_file' => '/Users/hooklife/Projects/debug-docker-php/tls/cert.pem',
+//        'ssl_key_file'  => '/Users/hooklife/Projects/debug-docker-php/tls/key.pem'
     ]);
-    $client->request("GET", '/info');
+    var_dump($client->request("GET", '/info'));
 });
 
 

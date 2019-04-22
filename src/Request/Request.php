@@ -104,7 +104,9 @@ class Request
 
 
         $this->socket->send($raw);
-        return $this->unwrapRecv();
+        $body = $this->unwrapRecv();
+
+        return json_decode($body, true);
     }
 
 
@@ -118,29 +120,54 @@ class Request
         $headers = $this->parseHttpHeader($headerLines);
         [$protocol, $statusCode] = $this->parseProtocol($headerLines);
 
-
         // TODO Support http1.1
         if (isset($headers['Transfer-Encoding']) && 'chunked' === $headers['Transfer-Encoding']) {
-
-//            do {
-//                if (!$this->endsWith($body, "0\r\n\r\n")) {
-//                    $body .= $this->socket->recv();
-//                    continue;
-//                }
-//                var_dump($body);
-//                [$recvLength, $recvRaw] = explode("\r\n", $body, 2);
-//                break;
-//            } while (true);
-
-
-//                var_dump($trunkLength);
-//                $body = $this->socket->recv();
-//                var_dump($body);
-
+            while (!$this->endsWith($body, "0\r\n\r\n")) {
+                $body .= $this->socket->recv();
+            };
+            $body = $this->unchunkHttpResponse($body);
         }
-        return substr($body, 0, -2);
+
+
+        return $body;
     }
 
+    function unchunkHttpResponse($chunkedRaw)
+    {
+        $eol = "\r\n";
+        $add = strlen($eol);
+        $tmp = $chunkedRaw;
+        $result = '';
+        do {
+            $chunkedRaw = ltrim($chunkedRaw);
+            // get eol
+            $pos = strpos($chunkedRaw, $eol);
+            if ($pos === false) {
+                return false;
+            }
+            // get len
+            $len = hexdec(substr($chunkedRaw, 0, $pos));
+            if (!is_numeric($len) or $len < 0) {
+                return false;
+            }
+
+            $result .= substr($chunkedRaw, ($pos + $add), $len);
+            $chunkedRaw = substr($chunkedRaw, ($len + $pos + $add));
+            $check = trim($chunkedRaw);
+        } while (!empty($check));
+        return $result;
+    }
+
+
+    function endsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        if ($length == 0) {
+            return true;
+        }
+
+        return (substr($haystack, -$length) === $needle);
+    }
 
     public function parseHttpHeader($headerLines)
     {
