@@ -42,15 +42,6 @@ class Request
 
     }
 
-    /**
-     * Make a get request.
-     *
-     * @param string $endpoint
-     * @param array $query
-     * @param array $headers
-     *
-     * @return array
-     */
     public function get($endpoint, $query = [], $headers = [])
     {
         return $this->request('get', $endpoint, [
@@ -66,15 +57,6 @@ class Request
         ]);
     }
 
-    /**
-     * Make a post request.
-     *
-     * @param string $endpoint
-     * @param array $params
-     * @param array $headers
-     *
-     * @return array
-     */
     public function postJson($endpoint, $params = [], $headers = [])
     {
         return $this->request('post', $endpoint, [
@@ -91,6 +73,7 @@ class Request
      * @param string $endpoint
      * @param array $options http://docs.guzzlephp.org/en/latest/request-options.html
      *
+     * @return mixed
      * @throws ParseException
      */
     public function request($method, $endpoint, $options = [])
@@ -128,27 +111,13 @@ class Request
             break;
         }
 
-
+        return $this->wrapResponse($responseBody);
     }
 
 
-
-
-    public function parseHttpHeader($headerLines)
+    public function wrapResponse($responseBody)
     {
-        // remove "HTTP/1.1 200 OK";
-        array_shift($headerLines);
-        $headers = [];
-        foreach ($headerLines as $header) {
-            [$key, $value] = explode(": ", $header);
-            $headers[$key] = $value;
-        }
-        return $headers;
+        return json_decode($responseBody, true);
     }
 
-    public function parseProtocol($headerLines)
-    {
-        [$protocol, $statusCode] = explode(" ", array_shift($headerLines), 2);
-        return [$protocol, $statusCode];
-    }
 }
