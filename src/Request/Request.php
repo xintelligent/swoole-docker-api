@@ -65,6 +65,13 @@ class Request
         ]);
     }
 
+    public function postHijack($endpoint, $params = [], $headers = [])
+    {
+        return $this->request('post', $endpoint, [
+            'headers' => array_merge(['Accept' => "application/json"], $headers),
+            'json'    => $params,
+        ], $withoutParse = true);
+    }
 
     /**
      * Make a http request.
@@ -73,10 +80,11 @@ class Request
      * @param string $endpoint
      * @param array $options http://docs.guzzlephp.org/en/latest/request-options.html
      *
+     * @param bool $withoutParse
      * @return mixed
      * @throws ParseException
      */
-    public function request($method, $endpoint, $options = [])
+    public function request($method, $endpoint, $options = [], $withoutParse = false)
     {
         $requestCreate = new RequestCreate();
         $requestCreate->setHost($this->uri['host']);
@@ -88,7 +96,10 @@ class Request
         $requestCreate->setPayload($options);
         $raw = $requestCreate->toRaw();
         $this->socket->send($raw);
-var_dump($raw);
+
+        if ($withoutParse) {
+            return $this->socket;
+        }
 
         $responseBody = '';
         $parser = new Parser(function ($data) use (&$responseBody) {
@@ -110,7 +121,6 @@ var_dump($raw);
             }
             break;
         }
-
         return $this->wrapResponse($responseBody);
     }
 

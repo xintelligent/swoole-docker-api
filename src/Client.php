@@ -14,19 +14,11 @@ class Client
     /**
      * @var Request
      */
-    private $request, $uriParse;
+    public $request;
+    private $uriParse;
 
-
-    /**
-     * Client constructor.
-     * @param RequestInterface $request
-     */
-    public function __construct(RequestInterface $request = null)
+    public function __construct($request)
     {
-        if (null === $request) {
-            $request = new Request();
-        }
-
         $this->request = $request;
         $this->uriParse = new UriTemplate();
     }
@@ -86,12 +78,27 @@ class Client
      * @return array
      * @link https://docs.docker.com/engine/api/v1.39/#tag/Exec
      */
-    public function exec(string $container, array $payload)
+    public function createExec(string $container, array $payload)
     {
         return $this->request->postJson(
             $this->uriParse->expand('/containers/{container}/exec', ['container' => $container]),
             $payload
         );
+    }
+
+    public function startExec(string $execId, array $payload)
+    {
+        $uri = $this->uriParse->expand('/exec/{execId}/start', compact('execId'));
+        if ($payload['Detach']) {
+            return $this->request->postJson($uri, $payload);
+        }
+
+        $response = $this->request->postJson($uri, $payload, [
+            'Connection' => 'Upgrade',
+            'Upgrade'    => 'tcp'
+        ]);
+        return $this->request->socket;
+
     }
 
 

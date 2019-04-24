@@ -43,11 +43,12 @@ class RequestCreate
         $this->headers[$key] = $value;
     }
 
-    protected function createBaseHeader()
+    protected function createBaseHeader($contentLength)
     {
         $headers = [
-            "Host"       => $this->host,
-            "Connection" => 'Keep-Alive'
+            "Host"           => $this->host,
+            "Connection"     => 'Keep-Alive',
+            'Content-Length' => $contentLength
         ];
         $this->headers = array_merge($this->headers, $headers);
     }
@@ -55,11 +56,16 @@ class RequestCreate
 
     public function toRaw()
     {
-        $this->createBaseHeader();
-        $raw = RequestRaw::method($this->method, $this->endpoint) .
-            RequestRaw::header($this->headers) .
-            RequestRaw::body($this->body) .
-            "\r\n";
+        $method = RequestRaw::method($this->method, $this->endpoint);
+        $body = RequestRaw::body($this->body);
+        // Fix Header content-length
+        $this->createBaseHeader(strlen($body));
+        $header = RequestRaw::header($this->headers);
+
+        $raw =
+            $method . "\r\n" .
+            $header . "\r\n" .
+            $body . "\r\n\r\n";
         return $raw;
     }
 }
