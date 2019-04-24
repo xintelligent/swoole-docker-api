@@ -1,5 +1,7 @@
 # swoole-docker-api
-support for [HTTP connection hijacking](https://docs.docker.com/engine/reference/api/docker_remote_api_v1.22/#3-2-hijacking), send http request by swoole tcp client.
+**coroutine-based docker-api**
+
+send http request by swoole tcp client to support for [HTTP connection hijacking](https://docs.docker.com/engine/reference/api/docker_remote_api_v1.22/#3-2-hijacking)
 ## branch
 ### write-parse
 write http response parse by myself
