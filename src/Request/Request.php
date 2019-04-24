@@ -88,7 +88,7 @@ class Request
         $requestCreate->setPayload($options);
         $raw = $requestCreate->toRaw();
         $this->socket->send($raw);
-
+var_dump($raw);
 
         $responseBody = '';
         $parser = new Parser(function ($data) use (&$responseBody) {
