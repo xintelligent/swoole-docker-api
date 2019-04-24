@@ -8,7 +8,7 @@ write http response parse by myself
 
 ## notes
 
-### structure
+### http request structure
 ```
 POST /info HTTP/1.1\r\n
 Accept: application/json\r\n
