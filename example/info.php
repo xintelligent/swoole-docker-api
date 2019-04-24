@@ -33,7 +33,8 @@ go(function () {
 //        'ssl_cert_file' => '/Users/hooklife/Projects/debug-docker-php/tls/cert.pem',
 //        'ssl_key_file'  => '/Users/hooklife/Projects/debug-docker-php/tls/key.pem'
     ]);
-    var_dump($client->request("GET", '/info'));
+$client->request("GET", '/info');
+
 });
 
 

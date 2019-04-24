@@ -3,9 +3,12 @@
 
 namespace Hooklife\SwooleDockerApi\Request;
 
+use Amp\Artax\Internal\Parser;
+use Amp\Artax\ParseException;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use Hooklife\SwooleDockerApi\Exception\SocketConnectException;
+use Hooklife\SwooleDockerApi\Request\Exceptions\NeedMoreDataException;
 use Mobingilabs\SwooleGuzzle\SwooleHandler;
 use Psr\Http\Message\ResponseInterface;
 
@@ -88,7 +91,7 @@ class Request
      * @param string $endpoint
      * @param array $options http://docs.guzzlephp.org/en/latest/request-options.html
      *
-     * @return array
+     * @throws ParseException
      */
     public function request($method, $endpoint, $options = [])
     {
@@ -101,73 +104,35 @@ class Request
         }
         $requestCreate->setPayload($options);
         $raw = $requestCreate->toRaw();
-
-
         $this->socket->send($raw);
-        $body = $this->unwrapRecv();
-
-        return json_decode($body, true);
-    }
 
 
-    protected function unwrapRecv()
-    {
-        $recv = $this->socket->recv();
+        $responseBody = '';
+        $parser = new Parser(function ($data) use (&$responseBody) {
+            $responseBody .= $data;
+        });
 
-        [$headersRaw, $body] = explode("\r\n\r\n", $recv, 2);
-        $headerLines = explode("\r\n", $headersRaw);
-
-        $headers = $this->parseHttpHeader($headerLines);
-        [$protocol, $statusCode] = $this->parseProtocol($headerLines);
-
-        // TODO Support http1.1
-        if (isset($headers['Transfer-Encoding']) && 'chunked' === $headers['Transfer-Encoding']) {
-            while (!$this->endsWith($body, "0\r\n\r\n")) {
-                $body .= $this->socket->recv();
-            };
-            $body = $this->unchunkHttpResponse($body);
+        while (null !== $chunk = $this->socket->recv()) {
+            $parseResult = $parser->parse($chunk);
+            if (!$parseResult) {
+                continue;
+            }
+            if ($parseResult["headersOnly"]) {
+                do {
+                    $parseResult = $parser->parse($chunk);
+                    if ($parseResult) {
+                        break;
+                    }
+                } while (null !== $chunk = $this->socket->recv());
+            }
+            break;
         }
 
 
-        return $body;
-    }
-
-    function unchunkHttpResponse($chunkedRaw)
-    {
-        $eol = "\r\n";
-        $add = strlen($eol);
-        $tmp = $chunkedRaw;
-        $result = '';
-        do {
-            $chunkedRaw = ltrim($chunkedRaw);
-            // get eol
-            $pos = strpos($chunkedRaw, $eol);
-            if ($pos === false) {
-                return false;
-            }
-            // get len
-            $len = hexdec(substr($chunkedRaw, 0, $pos));
-            if (!is_numeric($len) or $len < 0) {
-                return false;
-            }
-
-            $result .= substr($chunkedRaw, ($pos + $add), $len);
-            $chunkedRaw = substr($chunkedRaw, ($len + $pos + $add));
-            $check = trim($chunkedRaw);
-        } while (!empty($check));
-        return $result;
     }
 
 
-    function endsWith($haystack, $needle)
-    {
-        $length = strlen($needle);
-        if ($length == 0) {
-            return true;
-        }
 
-        return (substr($haystack, -$length) === $needle);
-    }
 
     public function parseHttpHeader($headerLines)
     {
