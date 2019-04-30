@@ -9,8 +9,7 @@
   ],
   "require": {
     "ext-json": "*",
-    "rize/uri-template": "^0.3.2",
-    "amphp/artax": "^3.0"
+    "rize/uri-template": "^0.3.2"
   },
   "autoload-dev": {
     "psr-4": {

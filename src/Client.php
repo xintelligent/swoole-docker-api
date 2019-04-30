@@ -4,10 +4,10 @@
 namespace Hooklife\SwooleDockerApi;
 
 
+use Hooklife\SwooleDockerApi\Parser\StdStreamParser;
 use Hooklife\SwooleDockerApi\Request\Request;
-use Hooklife\SwooleDockerApi\Request\RequestInterface;
-use React\Promise\PromiseInterface;
 use Rize\UriTemplate;
+use Swoole\Coroutine\Channel;
 
 class Client
 {
@@ -45,17 +45,49 @@ class Client
         );
     }
 
+    /**
+     * @param array $payload
+     * @param null $name
+     * @return mixed
+     * @link https://docs.docker.com/engine/api/v1.39/#operation/ContainerCreate
+     */
+    public function containerCreate(array $payload, $name = null)
+    {
+        $result = $this->request->postJson(
+            $this->uriParse->expand('/containers/create{?name}', compact('name')),
+            $payload
+        );
+        return json_decode($result, true);
+    }
+
 
     public function containerStart($container, $config = [])
     {
-        return $this->request->postJson(
+        $result = $this->request->postJson(
             $this->uriParse->expand(
-                '/containers/{container}/start',
-                ['container' => $container]
+                '/containers/{container}/start', compact('container')
             ),
             $config
         );
+        return json_decode($result, true);
     }
+
+    public function containerLogs($container, $config = []): Channel
+    {
+        $response = $this->request->get(
+            $this->uriParse->expand(
+                '/containers/{container}/logs', compact('container')
+            ),
+            $config
+        );
+        $parser = new StdStreamParser($response);
+        go(function () use($parser) {
+            $parser->start();
+        });
+
+        return $parser->chan;
+    }
+
 
     public function containerRemove($container, $v = false, $force = false)
     {

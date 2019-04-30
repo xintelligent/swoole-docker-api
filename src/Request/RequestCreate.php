@@ -24,13 +24,9 @@ class RequestCreate
         $this->endpoint = $endpoint;
     }
 
-    public function setPayload($options)
+    public function setBody($body = '')
     {
-        if (isset($options['json'])) {
-            $this->headers['Content-Type'] = "application/json";
-            $this->body = ['json', $options['json']];
-            return true;
-        }
+        $this->body = $body;
     }
 
     public function setHeaders(array $headers)
@@ -43,29 +39,55 @@ class RequestCreate
         $this->headers[$key] = $value;
     }
 
-    protected function createBaseHeader($contentLength)
+    protected function createBaseHeader($contentLength = null)
     {
         $headers = [
-            "Host"           => $this->host,
-            "Connection"     => 'Keep-Alive',
-            'Content-Length' => $contentLength
+            "Host" => $this->host,
         ];
+        if (null !== $contentLength) {
+            $this->headers['Content-Length'] = $contentLength;
+        }
+        if (!isset($this->headers['Connection'])) {
+//            $this->headers["Connection"] = 'Keep-Alive';
+        }
+
         $this->headers = array_merge($this->headers, $headers);
     }
 
+    public function setOption($method, $endpoint, $options)
+    {
+        $parsedUrl = parse_url($endpoint);
+        $this->setMethod($method);
+        // query parse
+        if (isset($options['query'])) {
+            if (isset($parsedUrl['query'])) {
+                $endpoint .= '&' . http_build_query($options['query']);
+            } else {
+                $endpoint .= '?' . http_build_query($options['query']);
+            }
+        }
+        $this->setEndpoint($endpoint);
+        if (isset($options['headers'])) {
+            $this->setHeaders($options['headers']);
+        }
+        if (isset($options['json'])) {
+            $this->headers['Content-Type'] = "application/json";
+            $this->setBody(json_encode($options['json']));
+        }
+    }
 
     public function toRaw()
     {
         $method = RequestRaw::method($this->method, $this->endpoint);
         $body = RequestRaw::body($this->body);
         // Fix Header content-length
-        $this->createBaseHeader(strlen($body));
+        $this->createBaseHeader($this->method === 'GET' ? null : strlen($body));
         $header = RequestRaw::header($this->headers);
 
         $raw =
             $method . "\r\n" .
             $header . "\r\n" .
-            $body . "\r\n\r\n";
+            $body;
         return $raw;
     }
 }

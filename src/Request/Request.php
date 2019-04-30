@@ -3,14 +3,10 @@
 
 namespace Hooklife\SwooleDockerApi\Request;
 
-use Amp\Artax\Internal\Parser;
 use Amp\Artax\ParseException;
-use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
 use Hooklife\SwooleDockerApi\Exception\SocketConnectException;
-use Hooklife\SwooleDockerApi\Request\Exceptions\NeedMoreDataException;
-use Mobingilabs\SwooleGuzzle\SwooleHandler;
-use Psr\Http\Message\ResponseInterface;
+use Hooklife\SwooleDockerApi\Parser\Parser;
+use Swoole\Coroutine\Channel;
 
 /**
  * Trait HasHttpRequest.
@@ -44,7 +40,7 @@ class Request
 
     public function get($endpoint, $query = [], $headers = [])
     {
-        return $this->request('get', $endpoint, [
+        return $this->doRequest('get', $endpoint, [
             'headers' => $headers,
             'query'   => $query,
         ]);
@@ -52,14 +48,14 @@ class Request
 
     public function delete($endpoint, $query = [], $headers = [])
     {
-        return $this->request('delete', $endpoint, [
+        return $this->doRequest('delete', $endpoint, [
             'headers' => $headers,
         ]);
     }
 
-    public function postJson($endpoint, $params = [], $headers = [])
+    public function  postJson($endpoint, $params = [], $headers = [])
     {
-        return $this->request('post', $endpoint, [
+        return $this->doRequest('post', $endpoint, [
             'headers' => array_merge(['Accept' => "application/json"], $headers),
             'json'    => $params,
         ]);
@@ -67,67 +63,48 @@ class Request
 
     public function postHijack($endpoint, $params = [], $headers = [])
     {
-        return $this->request('post', $endpoint, [
+        return $this->doRequest('post', $endpoint, [
             'headers' => array_merge(['Accept' => "application/json"], $headers),
             'json'    => $params,
-        ], $withoutParse = true);
+        ]);
     }
 
-    /**
-     * Make a http request.
-     *
-     * @param string $method
-     * @param string $endpoint
-     * @param array $options http://docs.guzzlephp.org/en/latest/request-options.html
-     *
-     * @param bool $withoutParse
-     * @return mixed
-     * @throws ParseException
-     */
-    public function request($method, $endpoint, $options = [], $withoutParse = false)
+
+    public function doRequest($method, $endpoint, $options = [])
     {
+
         $requestCreate = new RequestCreate();
+        $requestCreate->setOption($method, $endpoint, $options);
         $requestCreate->setHost($this->uri['host']);
-        $requestCreate->setEndpoint($endpoint);
-        $requestCreate->setMethod($method);
-        if (isset($options['headers'])) {
-            $requestCreate->setHeaders($options['headers']);
-        }
-        $requestCreate->setPayload($options);
         $raw = $requestCreate->toRaw();
+
         $this->socket->send($raw);
 
-        if ($withoutParse) {
-            return $this->socket;
-        }
-
-        $responseBody = '';
-        $parser = new Parser(function ($data) use (&$responseBody) {
-            $responseBody .= $data;
+        $responseChan = new Channel();
+        $parser = new Parser(function ($data) use ($responseChan) {
+            $responseChan->push($data);
         });
-
-        while (null !== $chunk = $this->socket->recv()) {
-            $parseResult = $parser->parse($chunk);
-            if (!$parseResult) {
-                continue;
+        go(function () use ($parser,$responseChan) {
+            while (null !== $chunk = $this->socket->recv()) {
+                $parseResult = $parser->parse($chunk);
+                if (!$parseResult) {
+                    continue;
+                }
+                if ($parseResult["headersOnly"]) {
+                    $chunk = null;
+                    do {
+                        $parseResult = $parser->parse($chunk);
+                        if ($parseResult) {
+                            break;
+                        }
+                    } while (null !== $chunk = $this->socket->recv());
+                }
+                break;
             }
-            if ($parseResult["headersOnly"]) {
-                do {
-                    $parseResult = $parser->parse($chunk);
-                    if ($parseResult) {
-                        break;
-                    }
-                } while (null !== $chunk = $this->socket->recv());
-            }
-            break;
-        }
-        return $this->wrapResponse($responseBody);
+            $responseChan->close();
+        });
+        return new Response($responseChan);
     }
 
-
-    public function wrapResponse($responseBody)
-    {
-        return json_decode($responseBody, true);
-    }
 
 }
