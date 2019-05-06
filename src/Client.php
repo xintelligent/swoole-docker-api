@@ -81,7 +81,7 @@ class Client
             $config
         );
         $parser = new StdStreamParser($response);
-        go(function () use($parser) {
+        go(function () use ($parser) {
             $parser->start();
         });
 
@@ -101,6 +101,14 @@ class Client
                 ]
             )
         );
+    }
+
+
+    public function imagePull($image)
+    {
+        return $this->request->postJson('/image/create', [
+            'fromImage' => $image,
+        ]);
     }
 
     /**
