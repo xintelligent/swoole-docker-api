@@ -1,5 +1,5 @@
 {
-  "name": "hooklife/swoole-docker-api",
+  "name": "mobingilabs/swoole-docker-api",
   "type": "swoole,docker-api,docker",
   "authors": [
     {
