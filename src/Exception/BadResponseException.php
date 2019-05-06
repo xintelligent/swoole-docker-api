@@ -1,7 +1,7 @@
 <?php
 
 
-namespace mobingilabs\SwooleDockerApi\Exception;
+namespace MobingiLabs\SwooleDockerApi\Exception;
 
 
 use Swoole\Coroutine\Channel;

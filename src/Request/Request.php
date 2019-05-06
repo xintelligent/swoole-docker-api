@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Hooklife\SwooleDockerApi\Request;
+namespace MobingiLabs\SwooleDockerApi\Request;
 
 use Amp\Artax\ParseException;
 use Hooklife\SwooleDockerApi\Exception\SocketConnectException;

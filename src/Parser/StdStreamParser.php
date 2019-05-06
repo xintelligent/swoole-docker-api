@@ -1,9 +1,9 @@
 <?php
 
 
-namespace Hooklife\SwooleDockerApi\Parser;
+namespace MobingiLabs\SwooleDockerApi\Parser;
 
-use Hooklife\SwooleDockerApi\Request\Response;
+use MobingiLabs\SwooleDockerApi\Request\Response;
 use Swoole\Coroutine;
 
 /**

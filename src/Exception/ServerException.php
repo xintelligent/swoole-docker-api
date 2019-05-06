@@ -1,7 +1,7 @@
 <?php
 
 
-namespace mobingilabs\SwooleDockerApi\Exception;
+namespace MobingiLabs\SwooleDockerApi\Exception;
 
 /**
  * Exception when a server error is encountered (5xx codes)
