@@ -1,14 +1,14 @@
 <?php
 
 
-namespace Hooklife\SwooleDockerApi\Parser;
+namespace MobingiLabs\SwooleDockerApi\Parser;
 
-use Hooklife\SwooleDockerApi\Request\Response;
+use MobingiLabs\SwooleDockerApi\Request\Response;
 use Swoole\Coroutine;
 
 /**
  * Class StreamResultParse
- * @package Hooklife\SwooleDockerApi\Parser
+ * @package MobingiLabs\SwooleDockerApi\Parser
  * @link https://docs.docker.com/engine/api/v1.39/#operation/ContainerAttach
  */
 class StdStreamParser

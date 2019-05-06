@@ -1,11 +1,11 @@
 <?php
 
 
-namespace Hooklife\SwooleDockerApi;
+namespace MobingiLabs\SwooleDockerApi;
 
 
 use GuzzleHttp\HandlerStack;
-use Hooklife\SwooleDockerApi\Request\Request;
+use MobingiLabs\SwooleDockerApi\Request\Request;
 use Mobingilabs\SwooleGuzzle\SwooleHandler;
 
 class Docker
