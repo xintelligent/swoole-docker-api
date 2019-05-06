@@ -1,11 +1,13 @@
 <?php
 
 
-namespace MobingiLabs\SwooleDockerApi\Request;
+namespace Hooklife\SwooleDockerApi\Request;
 
 use Amp\Artax\ParseException;
-use MobingiLabs\SwooleDockerApi\Exception\SocketConnectException;
-use MobingiLabs\SwooleDockerApi\Parser\Parser;
+use Hooklife\SwooleDockerApi\Exception\SocketConnectException;
+use Hooklife\SwooleDockerApi\Parser\Parser;
+use mobingilabs\SwooleDockerApi\Exception\BadResponseException;
+use mobingilabs\SwooleDockerApi\Exception\ServerException;
 use Swoole\Coroutine\Channel;
 
 /**
@@ -53,7 +55,7 @@ class Request
         ]);
     }
 
-    public function  postJson($endpoint, $params = [], $headers = [])
+    public function postJson($endpoint, $params = [], $headers = [])
     {
         return $this->doRequest('post', $endpoint, [
             'headers' => array_merge(['Accept' => "application/json"], $headers),
@@ -84,13 +86,20 @@ class Request
         $parser = new Parser(function ($data) use ($responseChan) {
             $responseChan->push($data);
         });
-        go(function () use ($parser,$responseChan) {
+        go(function () use ($parser, $responseChan) {
             while (null !== $chunk = $this->socket->recv()) {
                 $parseResult = $parser->parse($chunk);
                 if (!$parseResult) {
                     continue;
                 }
                 if ($parseResult["headersOnly"]) {
+                    if ($parseResult['status'] > 201) {
+                        if ($parseResult['status'] > 400) {
+                            throw new ServerException($responseChan, $parseResult);
+                        }
+                        throw new BadResponseException($responseChan, $parseResult);
+                    }
+
                     $chunk = null;
                     do {
                         $parseResult = $parser->parse($chunk);

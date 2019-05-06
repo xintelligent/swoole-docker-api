@@ -1,11 +1,11 @@
 <?php
 
 
-namespace MobingiLabs\SwooleDockerApi;
+namespace Hooklife\SwooleDockerApi;
 
 
-use MobingiLabs\SwooleDockerApi\Parser\StdStreamParser;
-use MobingiLabs\SwooleDockerApi\Request\Request;
+use Hooklife\SwooleDockerApi\Parser\StdStreamParser;
+use Hooklife\SwooleDockerApi\Request\Request;
 use Rize\UriTemplate;
 use Swoole\Coroutine\Channel;
 

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace MobingiLabs\SwooleDockerApi\Exception;
+namespace Hooklife\SwooleDockerApi\Exception;
 
 
 use Throwable;

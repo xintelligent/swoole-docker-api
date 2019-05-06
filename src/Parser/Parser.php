@@ -1,6 +1,6 @@
 <?php
 
-namespace MobingiLabs\SwooleDockerApi\Parser;
+namespace Hooklife\SwooleDockerApi\Parser;
 
 use Amp\Artax\ParseException;
 
