@@ -8,20 +8,26 @@ use Swoole\Coroutine\Channel;
 
 class Response
 {
-    /**
-     * @var Channel $chan
-     */
-    public $chan;
+    private $exceptionChan;
+    private $responseChan;
 
-    public function __construct($chan)
+    public function __construct($exceptionChan, $responseChan)
     {
-        $this->chan = $chan;
+        $this->exceptionChan = $exceptionChan;
+        $this->responseChan = $responseChan;
+
+
+        $exception = $this->exceptionChan->pop();
+        if ($exception){
+            throw new $exception[0]($exception[1]);
+        }
     }
+
 
     public function __toString()
     {
         $data = '';
-        while ($chunk = $this->chan->pop()) {
+        while ($chunk = $this->responseChan->pop()) {
             $data .= $chunk;
         }
         return $data;

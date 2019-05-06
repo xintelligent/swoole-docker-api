@@ -5,31 +5,33 @@ namespace MobingiLabs\SwooleDockerApi\Exception;
 
 
 use Swoole\Coroutine\Channel;
+use Swoole\Coroutine\Client;
 use Throwable;
 
 /**
  * Exception when an HTTP error occurs (4xx or 5xx error)
  */
-class BadResponseException extends \RuntimeException
+class BadResponseException extends \Exception
 {
 
-    /**
-     * @var Channel
-     */
-    private $chan;
     private $result;
 
-    public function __construct(Channel $chan, $result)
+    public function __construct($result)
     {
-        $this->chan = $chan;
         $this->result = $result;
-
-        $chan->close();
-
         parent::__construct();
     }
 
+    /**
+     * @return mixed
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
 
-
-
+    public function getStatus()
+    {
+        return $this->result['status'];
+    }
 }
