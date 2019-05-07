@@ -26,11 +26,11 @@ class Response
             return false;
         }
 
-        if ($chunk["type"] = 0) {
+        if ($chunk["type"] == 0) {
             throw new $chunk['data'][0]($chunk['data'][1]);
         }
 
-        if ($chunk['type'] = 1) {
+        if ($chunk['type'] == 1) {
             $this->data .= $chunk['data'];
             return $chunk['data'];
         }
