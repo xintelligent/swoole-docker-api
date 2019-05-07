@@ -67,14 +67,16 @@ class Request
         $requestCreate->setOption($method, $endpoint, $options);
         $requestCreate->setHost($this->uri['host']);
         $raw = $requestCreate->toRaw();
-        $this->getSocket()->send($raw);
+        $socket = $this->getSocket();
+        $socket->send($raw);
 
         $responseChan = new Channel();
         $parser = new Parser(function ($data) use ($responseChan) {
             $responseChan->push(["type" => 1, "data" => $data]);
         });
-        go(function () use ($parser, $responseChan) {
-            while (null !== $chunk = $this->socket->recv()) {
+
+        go(function () use ($parser, $responseChan, $socket) {
+            while (null !== $chunk = $socket->recv()) {
                 $parseResult = $parser->parse($chunk);
                 if (!$parseResult) {
                     continue;
@@ -95,29 +97,19 @@ class Request
                         if ($parseResult) {
                             break;
                         }
-                    } while (null !== $chunk = $this->socket->recv());
+                    } while (null !== $chunk = $socket->recv());
                 }
                 break;
             }
-            $this->closeSocket();
+            $socket->close();
             $responseChan->close();
         });
         return new Response($responseChan);
     }
 
-    public function closeSocket()
-    {
-        $this->socket->close();
-        $this->socket = null;
-    }
-
 
     public function getSocket(): Client
     {
-        if ($this->socket !== null) {
-            return $this->socket;
-        }
-
         $this->socket = new \Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
         $this->socket->set($this->options);
         if (!$this->socket->connect($this->uri['host'], $this->uri['port'], 200)) {
