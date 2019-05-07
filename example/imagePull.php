@@ -5,7 +5,7 @@ go(function () {
 //        'ssl_cert_file' => '/Users/hooklife/Projects/debug-docker-php/tls/cert.pem',
 //        'ssl_key_file'  => '/Users/hooklife/Projects/debug-docker-php/tls/key.pem'
     ]);
-    $response = $client->imagePull("php:7-fpm");
+    $response = $client->imagePull("php:7-fpm","https://registry-1.docker.io",null,'latest','');
 
     while ($chunk = $response->recv()) {
         var_dump($chunk);

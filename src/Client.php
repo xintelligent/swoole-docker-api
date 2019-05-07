@@ -58,7 +58,7 @@ class Client
             $this->uriParse->expand('/containers/create{?name}', compact('name')),
             $payload
         );
-        return json_decode($result, true);
+        return json_decode($result->toString(), true);
     }
 
 
