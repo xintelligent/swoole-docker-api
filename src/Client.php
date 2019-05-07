@@ -6,6 +6,7 @@ namespace MobingiLabs\SwooleDockerApi;
 
 use MobingiLabs\SwooleDockerApi\Parser\StdStreamParser;
 use MobingiLabs\SwooleDockerApi\Request\Request;
+use MobingiLabs\SwooleDockerApi\Request\Response;
 use Rize\UriTemplate;
 use Swoole\Coroutine\Channel;
 
@@ -103,12 +104,20 @@ class Client
         );
     }
 
-
-    public function imagePull($image)
+    /**
+     * @param $image
+     * @return Response
+     * https://docs.docker.com/engine/api/v1.39/#operation/BuildPrune
+     */
+    public function imagePull($fromImage, $fromSrc, $repo, $tag, $registry)
     {
-        return $this->request->postJson('/image/create', [
-            'fromImage' => $image,
-        ]);
+        /** @var Response $response */
+        $response = $this->request->postJson(
+            $this->uriParse->expand('/images/create{?fromImage,fromSrc,repo,tag,registry}',
+                compact('fromImage', 'fromSrc', 'repo', 'tag', 'registry')
+            )
+        );
+        return $response;
     }
 
     /**

@@ -70,7 +70,7 @@ class RequestCreate
         if (isset($options['headers'])) {
             $this->setHeaders($options['headers']);
         }
-        if (isset($options['json'])) {
+        if (isset($options['json']) && $options['json']) {
             $this->headers['Content-Type'] = "application/json";
             $this->setBody(json_encode($options['json']));
         }

@@ -3,37 +3,46 @@
 
 namespace MobingiLabs\SwooleDockerApi\Request;
 
-
-use Swoole\Coroutine\Channel;
-
 class Response
 {
-    private $exceptionChan;
-    private $responseChan;
+    public $responseChan;
 
-    public function __construct($exceptionChan, $responseChan)
+    protected $data = '';
+    protected $finish = false;
+
+    public function __construct($responseChan)
     {
-        $this->exceptionChan = $exceptionChan;
         $this->responseChan = $responseChan;
-
-
-        $exception = $this->exceptionChan->pop();
-        if ($exception){
-            throw new $exception[0]($exception[1]);
-        }
     }
 
+    public function recv()
+    {
+        $chunk = $this->responseChan->pop();
+        if (!$chunk) {
+            $this->finish = true;
+        }
+
+        if ($this->finish) {
+            return false;
+        }
+
+        if ($chunk["type"] = 0) {
+            throw new $chunk['data'][0]($chunk['data'][1]);
+        }
+
+        if ($chunk['type'] = 1) {
+            $this->data .= $chunk['data'];
+            return $chunk['data'];
+        }
+    }
 
     public function __toString()
     {
-        $data = '';
-        while ($chunk = $this->responseChan->pop()) {
-            $data .= $chunk;
+        if(!$this->finish){
+            while ($this->recv()) ;
         }
-        return $data;
+        return $this->data;
     }
-
-
 
 
 }

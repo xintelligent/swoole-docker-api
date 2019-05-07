@@ -3,7 +3,6 @@
 
 namespace MobingiLabs\SwooleDockerApi\Request;
 
-use Amp\Artax\ParseException;
 use MobingiLabs\SwooleDockerApi\Exception\SocketConnectException;
 use MobingiLabs\SwooleDockerApi\Parser\Parser;
 use MobingiLabs\SwooleDockerApi\Exception\BadResponseException;
@@ -64,35 +63,29 @@ class Request
 
     public function doRequest($method, $endpoint, $options = [])
     {
-
         $requestCreate = new RequestCreate();
         $requestCreate->setOption($method, $endpoint, $options);
         $requestCreate->setHost($this->uri['host']);
         $raw = $requestCreate->toRaw();
-
         $this->getSocket()->send($raw);
 
         $responseChan = new Channel();
         $parser = new Parser(function ($data) use ($responseChan) {
-            $responseChan->push($data);
+            $responseChan->push(["type" => 1, "data" => $data]);
         });
-        $exceptionChan = new Channel();
-        go(function () use ($parser, $responseChan, $exceptionChan) {
-            while (null !== $chunk = $this->getSocket()->recv()) {
+        go(function () use ($parser, $responseChan) {
+            while (null !== $chunk = $this->socket->recv()) {
                 $parseResult = $parser->parse($chunk);
                 if (!$parseResult) {
                     continue;
                 }
                 if ($parseResult["headersOnly"]) {
                     if ($parseResult['status'] > 201) {
-                        $this->closeSocket();
                         if ($parseResult['status'] > 400) {
-                            $exceptionChan->push([ServerException::class,$parseResult]);
-                        }else{
-                            $exceptionChan->push([BadResponseException::class,$parseResult]);
+                            $responseChan->push(['type' => 0, 'data' => [ServerException::class, $parseResult]]);
+                        } else {
+                            $responseChan->push(['type' => 0, 'data' => [BadResponseException::class, $parseResult]]);
                         }
-                        $responseChan->close();
-                        $exceptionChan->close();
                         break;
                     }
 
@@ -106,10 +99,10 @@ class Request
                 }
                 break;
             }
-            $exceptionChan->close();
+            $this->closeSocket();
             $responseChan->close();
         });
-        return new Response($exceptionChan, $responseChan);
+        return new Response($responseChan);
     }
 
     public function closeSocket()
