@@ -37,7 +37,7 @@ class StdStreamParser
 
     public function start()
     {
-        while ($data = $this->response->chan->pop()) {
+        while ($data = $this->response->recv()) {
             $this->parse($data);
         }
         $this->chan->close();
