@@ -36,7 +36,7 @@ class Response
         }
     }
 
-    public function __toString()
+    public function toString()
     {
         if(!$this->finish){
             while ($this->recv()) ;
