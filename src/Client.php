@@ -70,7 +70,7 @@ class Client
             ),
             $config
         );
-        return json_decode($result, true);
+        return json_decode($result->toString(), true);
     }
 
     public function containerLogs($container, $config = []): Channel
