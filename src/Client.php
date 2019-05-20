@@ -174,7 +174,7 @@ class Client
     public function removeVolume(string $name, int $force = 0)
     {
         return $this->request->delete(
-            $this->uriParse->expand('/volumes/{name}{?force}', ['name' => $name,'force'=>$force])
+            $this->uriParse->expand('/volumes/{name}{?force}', compact('name','force'))
         );
     }
 
