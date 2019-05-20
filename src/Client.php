@@ -160,10 +160,11 @@ class Client
 
     public function createVolume(array $payload)
     {
-        return $this->request->postJson(
+        $result = $this->request->postJson(
             $this->uriParse->expand('/volumes/create'),
             $payload
         );
+        return json_decode($result->toString(), true);
     }
 
     /**
@@ -173,9 +174,10 @@ class Client
      */
     public function removeVolume(string $name, int $force = 0)
     {
-        return $this->request->delete(
-            $this->uriParse->expand('/volumes/{name}{?force}', compact('name','force'))
+        $result = $this->request->delete(
+            $this->uriParse->expand('/volumes/{name}{?force}', compact('name', 'force'))
         );
+        return json_decode($result->toString(), true);
     }
 
     private function boolArg($value)
