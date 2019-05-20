@@ -39,7 +39,7 @@ class Client
         return $this->request->get(
             $this->uriParse->expand(
                 '/containers/json{?all,size}', [
-                    'all'  => $this->boolArg($all),
+                    'all' => $this->boolArg($all),
                     'size' => $this->boolArg($size)
                 ]
             )
@@ -97,8 +97,8 @@ class Client
                 '/containers/{container}{?v,force}',
                 [
                     'container' => $container,
-                    'v'         => $this->boolArg($v),
-                    'force'     => $this->boolArg($force)
+                    'v' => $this->boolArg($v),
+                    'force' => $this->boolArg($force)
                 ]
             )
         );
@@ -144,7 +144,7 @@ class Client
 
         $response = $this->request->postJson($uri, $payload, [
             'Connection' => 'Upgrade',
-            'Upgrade'    => 'tcp'
+            'Upgrade' => 'tcp'
         ]);
         return $this->request->socket;
 
@@ -158,6 +158,25 @@ class Client
         );
     }
 
+    public function createVolume(array $payload)
+    {
+        return $this->request->postJson(
+            $this->uriParse->expand('/volumes/create'),
+            $payload
+        );
+    }
+
+    /**
+     * @param string $name
+     * @param int $force 1 or 0
+     * @return Response
+     */
+    public function removeVolume(string $name, int $force = 0)
+    {
+        return $this->request->delete(
+            $this->uriParse->expand('/volumes/{name}{?force}', compact('name','force'))
+        );
+    }
 
     private function boolArg($value)
     {
