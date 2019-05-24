@@ -16,10 +16,10 @@ class BadResponseException extends \Exception
 
     private $result;
 
-    public function __construct($result)
+    public function __construct($result, string $message = '')
     {
         $this->result = $result;
-        parent::__construct($this->result['buffer']);
+        parent::__construct($message);
     }
 
     /**

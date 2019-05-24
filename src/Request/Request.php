@@ -82,15 +82,6 @@ class Request
                     continue;
                 }
                 if ($parseResult["headersOnly"]) {
-                    if ($parseResult['status'] > 201) {
-                        if ($parseResult['status'] > 400) {
-                            $responseChan->push(['type' => 0, 'data' => [ServerException::class, $parseResult]]);
-                        } else {
-                            $responseChan->push(['type' => 0, 'data' => [BadResponseException::class, $parseResult]]);
-                        }
-                        break;
-                    }
-
                     $chunk = null;
                     do {
                         $parseResult = $parser->parse($chunk);
@@ -98,6 +89,13 @@ class Request
                             break;
                         }
                     } while (null !== $chunk = $socket->recv());
+                }
+                if ($parseResult['status'] > 201) {
+                    if ($parseResult['status'] > 400) {
+                        $responseChan->push(['type' => 0, 'data' => [ServerException::class, $parseResult]]);
+                    } else {
+                        $responseChan->push(['type' => 0, 'data' => [BadResponseException::class, $parseResult]]);
+                    }
                 }
                 break;
             }

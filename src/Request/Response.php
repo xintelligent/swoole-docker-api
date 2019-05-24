@@ -27,7 +27,7 @@ class Response
         }
 
         if ($chunk["type"] == 0) {
-            throw new $chunk['data'][0]($chunk['data'][1]);
+            throw new $chunk['data'][0]($chunk['data'][1], $this->data);
         }
 
         if ($chunk['type'] == 1) {
@@ -38,7 +38,7 @@ class Response
 
     public function toString()
     {
-        if(!$this->finish){
+        if (!$this->finish) {
             while ($this->recv()) ;
         }
         return $this->data;
