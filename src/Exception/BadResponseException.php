@@ -19,7 +19,7 @@ class BadResponseException extends \Exception
     public function __construct($result)
     {
         $this->result = $result;
-        parent::__construct();
+        parent::__construct($this->result['buffer']);
     }
 
     /**
