@@ -90,7 +90,7 @@ class Request
                         }
                     } while (null !== $chunk = $socket->recv());
                 }
-                if ($parseResult['status'] > 201) {
+                if ($parseResult['status'] > 204) {
                     if ($parseResult['status'] >= 500) {
                         $responseChan->push(['type' => 0, 'data' => [ServerException::class, $parseResult]]);
                     } else {
