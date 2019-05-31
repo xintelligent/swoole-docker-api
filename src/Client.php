@@ -26,24 +26,32 @@ class Client
 
     public function ping()
     {
-        return $this->request->get('/_ping');
+        $result = $this->request->get('/_ping');
+        return json_decode($result->toString(),true);
     }
 
     public function info()
     {
-        return $this->request->get('/info');
+        $result = $this->request->get('/info');
+        return json_decode($result->toString(),true);
     }
 
+    /**
+     * @param bool $all
+     * @param bool $size
+     * @return array
+     */
     public function containerList($all = false, $size = false)
     {
-        return $this->request->get(
+        $result = $this->request->get(
             $this->uriParse->expand(
                 '/containers/json{?all,size}', [
-                    'all' => $this->boolArg($all),
+                    'all'  => $this->boolArg($all),
                     'size' => $this->boolArg($size)
                 ]
             )
         );
+        return json_decode($result->toString(),true);
     }
 
     /**
@@ -89,25 +97,34 @@ class Client
         return $parser->chan;
     }
 
-
+    /**
+     * @param string $container
+     * @param bool $v
+     * @param bool $force
+     * @return array
+     */
     public function containerRemove($container, $v = false, $force = false)
     {
-        return $this->request->delete(
+        $result = $this->request->delete(
             $this->uriParse->expand(
                 '/containers/{container}{?v,force}',
                 [
                     'container' => $container,
-                    'v' => $this->boolArg($v),
-                    'force' => $this->boolArg($force)
+                    'v'         => $this->boolArg($v),
+                    'force'     => $this->boolArg($force)
                 ]
             )
         );
+        return json_decode($result->toString(), true);
     }
 
     /**
-     * @param $image
-     * @return Response
-     * https://docs.docker.com/engine/api/v1.39/#operation/BuildPrune
+     * @param string $fromImage
+     * @param string $fromSrc
+     * @param string $repo
+     * @param string $tag
+     * @param string $registry
+     * @return array
      */
     public function imagePull($fromImage, $fromSrc, $repo, $tag, $registry)
     {
@@ -117,7 +134,7 @@ class Client
                 compact('fromImage', 'fromSrc', 'repo', 'tag', 'registry')
             )
         );
-        return $response;
+        return json_decode($response->toString(), true);
     }
 
     /**
@@ -129,10 +146,11 @@ class Client
      */
     public function createExec(string $container, array $payload)
     {
-        return $this->request->postJson(
+        $result = $this->request->postJson(
             $this->uriParse->expand('/containers/{container}/exec', ['container' => $container]),
             $payload
         );
+        return json_decode($result->toString(), true);
     }
 
     public function startExec(string $execId, array $payload)
@@ -144,20 +162,28 @@ class Client
 
         $response = $this->request->postJson($uri, $payload, [
             'Connection' => 'Upgrade',
-            'Upgrade' => 'tcp'
+            'Upgrade'    => 'tcp'
         ]);
         return $this->request->socket;
 
     }
 
-
+    /**
+     * @param string $container
+     * @return array
+     */
     public function attachWS(string $container)
     {
-        return $this->request->postJson(
+        $result = $this->request->postJson(
             $this->uriParse->expand('/containers/{container}/attach/ws', ['container' => $container])
         );
+        return json_decode($result->toString(), true);
     }
 
+    /**
+     * @param array $payload
+     * @return array
+     */
     public function createVolume(array $payload)
     {
         $result = $this->request->postJson(
@@ -180,6 +206,39 @@ class Client
         return json_decode($result->toString(), true);
     }
 
+    /**
+     * Block until a container stops, then returns the exit code.
+     * @param string $containerID
+     * @param string $condition Wait until a container state reaches the given condition,
+     * either 'not-running' (default), 'next-exit', or 'removed'.
+     * @return array
+     */
+    function waitContainer(string $containerID, $condition = 'not-running')
+    {
+        $result = $this->request->postJson(
+            $this->uriParse->expand('/containers/{containerID}/wait{?condition}', compact('containerID', 'condition'))
+        );
+        return json_encode($result->toString(), true);
+    }
+
+    /**
+     * Return low-level information about a container.
+     * @param string $containerID
+     * @param bool $size Return the size of container as fields SizeRw and SizeRootFs
+     * @return array
+     */
+    function inspectContainer(string $containerID, $size = false)
+    {
+        $result = $this->request->get(
+            $this->uriParse->expand('/containers/{containerID}/json{?size}', compact('containerID', 'size'))
+        );
+        return json_decode($result->toString(), true);
+    }
+
+    /**
+     * @param $value
+     * @return int|null
+     */
     private function boolArg($value)
     {
         return ($value ? 1 : null);
