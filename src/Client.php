@@ -124,7 +124,7 @@ class Client
      * @param string $repo
      * @param string $tag
      * @param string $registry
-     * @return array
+     * @return mixed
      */
     public function imagePull($fromImage, $fromSrc, $repo, $tag, $registry)
     {
@@ -134,7 +134,7 @@ class Client
                 compact('fromImage', 'fromSrc', 'repo', 'tag', 'registry')
             )
         );
-        return json_decode($response->toString(), true);
+        return $response;
     }
 
     /**
