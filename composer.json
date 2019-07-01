@@ -1,0 +1,21 @@
+{
+  "name": "greadog/swoole-docker-api",
+  "authors": [
+    {
+      "name": "hooklife",
+      "email": "miaogaopeng123@gmail.com"
+    }
+  ],
+  "require": {
+    "rize/uri-template": "^0.3.2",
+    "php-http/socket-client": "^1.4",
+    "php-http/message": "^1.7",
+    "guzzlehttp/psr7": "^1.5",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Greadog\\SwooleDockerApi\\": "src/"
+    }
+  }
+}
