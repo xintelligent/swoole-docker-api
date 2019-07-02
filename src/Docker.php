@@ -2,9 +2,7 @@
 
 namespace Greadog\SwooleDockerApi;
 
-use GuzzleHttp\Client as GuzzleClient;
-use Http\Adapter\Guzzle6\Client as GuzzleAdapter;
-use Http\Client\Socket\Client;
+use Greadog\SwooleDockerApi\Client;
 
 class Docker
 {
@@ -13,6 +11,6 @@ class Docker
 
         $config = ['timeout' => 5];
         $client = new Client();
-        $adapter = new GuzzleAdapter($client);
+        return $client;
     }
 }

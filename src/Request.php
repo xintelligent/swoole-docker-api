@@ -14,6 +14,7 @@ use Rize\UriTemplate;
 trait Request
 {
 
+    public $socket = null;
     /**
      * @param $uri
      * @param array $query
@@ -30,17 +31,32 @@ trait Request
 
     /**
      * @param $uri
-     * @param $body
+     * @param array $query
      * @return ResponseInterface
      * @throws \Http\Client\Exception
      */
-    public function jsonPost($uri, $body)
+    public function delete($uri, $query = [])
+    {
+        $uri = (new GuzzleUriFactory())->createUri($this->baseUri . $uri);
+        $uri = Uri::withQueryValues($uri, $query);
+        $request = (new GuzzleMessageFactory())->createRequest('DELETE', $uri);
+        return $this->request($request);
+    }
+
+    /**
+     * @param $uri
+     * @param $body
+     * @param array $header
+     * @return ResponseInterface
+     * @throws \Http\Client\Exception
+     */
+    public function jsonPost($uri, $body = null, $header = [])
     {
         $request = (new GuzzleMessageFactory())->createRequest(
             'POST',
             $uri,
-            ['Accept' => "application/json"],
-            $body
+            array_merge(['Accept' => "application/json"], $header),
+            json_encode($body)
         );
         return $this->request($request);
     }
@@ -71,7 +87,7 @@ trait Request
 
     protected function getBaseUri(): string
     {
-        return property_exists($this, 'baseUrl') ? $this->baseUrl : '';
+        return property_exists($this, 'baseUrl') ? $this->baseUri : '';
     }
 
     protected function getHttpClient(array $options = [])
