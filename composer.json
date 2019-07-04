@@ -1,5 +1,5 @@
 {
-  "name": "greadog/swoole-docker-api",
+  "name": "xintelligent/swoole-docker-api",
   "authors": [
     {
       "name": "hooklife",
@@ -15,7 +15,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Greadog\\SwooleDockerApi\\": "src/"
+      "Xintelligent\\SwooleDockerApi\\": "src/"
     }
   }
 }

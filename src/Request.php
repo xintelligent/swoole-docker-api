@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Greadog\SwooleDockerApi;
+namespace Xintelligent\SwooleDockerApi;
 
 use GuzzleHttp\Psr7\Uri;
 use Http\Client\Common\Plugin\ContentLengthPlugin;

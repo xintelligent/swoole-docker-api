@@ -1,11 +1,7 @@
 <?php
 
-namespace Greadog\SwooleDockerApi;
+namespace Xintelligent\SwooleDockerApi;
 
-use GuzzleHttp\Handler\StreamHandler;
-use GuzzleHttp\HandlerStack;
-use Http\Message\MessageFactory\DiactorosMessageFactory;
-use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Psr\Http\Message\ResponseInterface;
 use Rize\UriTemplate\UriTemplate;
 
@@ -13,18 +9,17 @@ class Client
 {
     use Request;
 
-    protected $baseUri = "http://161.117.84.76:9588";
+    protected $baseUri;
 
     /**
      * @var UriTemplate
      */
     private $uriParse;
 
-    public function __construct()
+    public function __construct($baseUri)
     {
-        $messageFactory = new GuzzleMessageFactory();
-
         $this->uriParse = new UriTemplate();
+        $this->baseUri = $baseUri;
     }
 
     public function ping()
