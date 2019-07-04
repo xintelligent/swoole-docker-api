@@ -79,7 +79,7 @@ class Client
             $this->uriParse->expand("/containers/{container}/logs?a=1", compact('container')),
             $config
         );
-        return $response;
+        return new StdStreamParser($response->getBody());
     }
 
     /**
@@ -166,7 +166,7 @@ class Client
             $this->uriParse->expand('/containers/{container}/start', compact('container')),
             $config
         );
-        return json_decode($response, true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**

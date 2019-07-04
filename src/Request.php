@@ -5,6 +5,7 @@ namespace Xintelligent\SwooleDockerApi;
 
 use GuzzleHttp\Psr7\Uri;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
+use Http\Client\Common\Plugin\DecoderPlugin;
 use Http\Client\Common\PluginClient;
 use Http\Client\Socket\Client;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
@@ -59,7 +60,7 @@ trait Request
         $request = (new GuzzleMessageFactory())->createRequest(
             'POST',
             $uri,
-            array_merge(['Accept' => "application/json",'Content-Type'=> "application/json"], $header),
+            array_merge(['Accept' => "application/json", 'Content-Type' => "application/json"], $header),
             json_encode($body)
         );
         return $this->request($request);
@@ -97,9 +98,10 @@ trait Request
     protected function getHttpClient(array $options = [])
     {
         $contentLengthPlugin = new ContentLengthPlugin();
+        $decoderPlugin = new DecoderPlugin();
         return new PluginClient(
             new Client(null, $options),
-            [$contentLengthPlugin]
+            [$contentLengthPlugin, $decoderPlugin]
         );
     }
 
