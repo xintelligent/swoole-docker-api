@@ -4,8 +4,11 @@
 namespace Xintelligent\SwooleDockerApi;
 
 use GuzzleHttp\Psr7\Uri;
+use Http\Client\Common\Exception\ClientErrorException;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\DecoderPlugin;
+use Http\Client\Common\Plugin\ErrorPlugin;
+use Http\Client\Common\Plugin\RedirectPlugin;
 use Http\Client\Common\PluginClient;
 use Http\Client\Socket\Client;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
@@ -13,6 +16,7 @@ use Http\Message\UriFactory\GuzzleUriFactory;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Rize\UriTemplate;
+use Xintelligent\SwooleDockerApi\Exceptions\DockerErrorException;
 
 trait Request
 {
@@ -56,7 +60,7 @@ trait Request
      */
     public function jsonPost($uri, $body = null, $header = [])
     {
-        $uri = (new GuzzleUriFactory())->createUri($this->baseUri)->withPath($uri);
+        $uri = (new GuzzleUriFactory())->createUri($this->baseUri . $uri);
         $request = (new GuzzleMessageFactory())->createRequest(
             'POST',
             $uri,
@@ -66,17 +70,37 @@ trait Request
         return $this->request($request);
     }
 
+    public function post($uri, $body = null, $header = [])
+    {
+        $uri = (new GuzzleUriFactory())->createUri($this->baseUri . $uri);
+        $request = (new GuzzleMessageFactory())->createRequest(
+            'POST',
+            $uri,
+            $header,
+            json_encode($body)
+        );
+        return $this->request($request);
+    }
+
+
     /**
      * @param RequestInterface $request
-     * @return ResponseInterface
+     * @return void
+     * @throws DockerErrorException
      * @throws \Http\Client\Exception
      */
     protected function request(RequestInterface $request)
     {
+        try {
+            return $this->getHttpClient($this->getBaseOptions())->sendRequest($request);
+        } catch (ClientErrorException $clientErrorException) {
+            throw new DockerErrorException(
+                "request error",
+                $clientErrorException->getRequest(),
+                $clientErrorException->getResponse()
+            );
+        }
 
-        return $this->unwrapResponse(
-            $this->getHttpClient($this->getBaseOptions())->sendRequest($request)
-        );
     }
 
     /**
@@ -99,9 +123,11 @@ trait Request
     {
         $contentLengthPlugin = new ContentLengthPlugin();
         $decoderPlugin = new DecoderPlugin();
+        $errorPlugin = new ErrorPlugin();
+        $redirectPlugin = new RedirectPlugin();
         return new PluginClient(
             new Client(null, $options),
-            [$contentLengthPlugin, $decoderPlugin]
+            [$contentLengthPlugin, $decoderPlugin, $errorPlugin, $redirectPlugin]
         );
     }
 

@@ -88,13 +88,13 @@ class Client
      * @param $repo
      * @param $tag
      * @param $registry
-     * @return Response
+     * @return ResponseInterface
      * @throws \Http\Client\Exception
      */
     public function imagePull($fromImage, $fromSrc, $repo, $tag, $registry)
     {
-        /** @var Response $response */
-        $response = $this->jsonPost(
+
+        $response = $this->post(
             $this->uriParse->expand('/images/create{?fromImage,fromSrc,repo,tag,registry}',
                 compact('fromImage', 'fromSrc', 'repo', 'tag', 'registry')
             )
