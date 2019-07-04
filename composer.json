@@ -8,10 +8,10 @@
   ],
   "require": {
     "rize/uri-template": "^0.3.2",
+    "ext-json": "*",
     "php-http/socket-client": "^1.4",
-    "php-http/message": "^1.7",
-    "guzzlehttp/psr7": "^1.5",
-    "ext-json": "*"
+    "php-http/client-common": "^1.0",
+    "guzzlehttp/psr7": "^1.6"
   },
   "autoload": {
     "psr-4": {

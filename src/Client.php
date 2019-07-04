@@ -22,6 +22,8 @@ class Client
 
     public function __construct()
     {
+        $messageFactory = new GuzzleMessageFactory();
+
         $this->uriParse = new UriTemplate();
     }
 
@@ -46,8 +48,7 @@ class Client
     public function containerList($all = false, $size = false)
     {
         $response = $this->get(
-            $this->uriParse->expand(
-                $this->baseUri . '/containers/json{?all,size}', [
+            $this->uriParse->expand('/containers/json{?all,size}', [
                     'all'  => $this->boolArg($all),
                     'size' => $this->boolArg($size)
                 ]
@@ -66,8 +67,7 @@ class Client
     public function containerRemove($container, $v = false, $force = false)
     {
         $result = $this->delete(
-            $this->uriParse->expand(
-                $this->baseUri . '/containers/{container}{?v,force}',
+            $this->uriParse->expand('/containers/{container}{?v,force}',
                 [
                     'container' => $container,
                     'v'         => $this->boolArg($v),
@@ -75,13 +75,13 @@ class Client
                 ]
             )
         );
-        return json_decode($result->toString(), true);
+        return json_decode($result->getBody()->getContents(), true);
     }
 
     public function containerLogs($container, $config = [])
     {
         $response = $this->get(
-            $this->uriParse->expand($this->baseUri . "/containers/{container}/logs?a=1", compact('container')),
+            $this->uriParse->expand("/containers/{container}/logs?a=1", compact('container')),
             $config
         );
         return $response;
@@ -100,7 +100,7 @@ class Client
     {
         /** @var Response $response */
         $response = $this->jsonPost(
-            $this->uriParse->expand($this->baseUri . '/images/create{?fromImage,fromSrc,repo,tag,registry}',
+            $this->uriParse->expand('/images/create{?fromImage,fromSrc,repo,tag,registry}',
                 compact('fromImage', 'fromSrc', 'repo', 'tag', 'registry')
             )
         );
@@ -115,11 +115,11 @@ class Client
      */
     public function createExec(string $container, array $payload)
     {
-        $result = $this->jsonPost(
-            $this->uriParse->expand($this->baseUri . '/containers/{container}/exec', ['container' => $container]),
+        $response = $this->jsonPost(
+            $this->uriParse->expand('/containers/{container}/exec', ['container' => $container]),
             $payload
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -130,7 +130,7 @@ class Client
      */
     public function startExec(string $execId, array $payload)
     {
-        $uri = $this->uriParse->expand($this->baseUri . '/exec/{execId}/start', compact('execId'));
+        $uri = $this->uriParse->expand('/exec/{execId}/start', compact('execId'));
         if ($payload['Detach']) {
             return $this->jsonPost($uri, $payload);
         }
@@ -153,7 +153,7 @@ class Client
     public function containerCreate(array $payload, $name = null)
     {
         $response = $this->jsonPost(
-            $this->uriParse->expand($this->baseUri . '/containers/create{?name}', compact('name')),
+            $this->uriParse->expand('/containers/create{?name}', compact('name')),
             $payload
         );
         return json_decode($response->getBody()->getContents(), true);
@@ -167,13 +167,11 @@ class Client
      */
     public function containerStart($container, $config = [])
     {
-        $result = $this->jsonPost(
-            $this->uriParse->expand(
-                $this->baseUri . '/containers/{container}/start', compact('container')
-            ),
+        $response = $this->jsonPost(
+            $this->uriParse->expand('/containers/{container}/start', compact('container')),
             $config
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response, true);
     }
 
     /**
@@ -183,10 +181,10 @@ class Client
      */
     public function attachWS(string $container)
     {
-        $result = $this->jsonPost(
-            $this->uriParse->expand($this->baseUri . '/containers/{container}/attach/ws', ['container' => $container])
+        $response = $this->jsonPost(
+            $this->uriParse->expand('/containers/{container}/attach/ws', ['container' => $container])
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -196,11 +194,11 @@ class Client
      */
     public function createVolume(array $payload)
     {
-        $result = $this->jsonPost(
-            $this->uriParse->expand($this->baseUri . '/volumes/create'),
+        $response = $this->jsonPost(
+            $this->uriParse->expand('/volumes/create'),
             $payload
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -211,18 +209,18 @@ class Client
      */
     public function removeVolume(string $name, int $force = 0)
     {
-        $result = $this->delete(
-            $this->uriParse->expand($this->baseUri . '/volumes/{name}{?force}', compact('name', 'force'))
+        $response = $this->delete(
+            $this->uriParse->expand('/volumes/{name}{?force}', compact('name', 'force'))
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     public function waitContainer(string $containerID, $condition = 'not-running')
     {
-        $result = $this->request->postJson(
-            $this->uriParse->expand($this->baseUri . '/containers/{containerID}/wait{?condition}', compact('containerID', 'condition'))
+        $response = $this->jsonPost(
+            $this->uriParse->expand('/containers/{containerID}/wait{?condition}', compact('containerID', 'condition'))
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -233,10 +231,10 @@ class Client
      */
     function inspectContainer(string $containerID, $size = false)
     {
-        $result = $this->get(
-            $this->uriParse->expand($this->baseUri . '/containers/{containerID}/json{?size}', compact('containerID', 'size'))
+        $response = $this->get(
+            $this->uriParse->expand('/containers/{containerID}/json{?size}', compact('containerID', 'size'))
         );
-        return json_decode($result->toString(), true);
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**

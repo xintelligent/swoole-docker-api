@@ -4,6 +4,8 @@
 namespace Greadog\SwooleDockerApi;
 
 use GuzzleHttp\Psr7\Uri;
+use Http\Client\Common\Plugin\ContentLengthPlugin;
+use Http\Client\Common\PluginClient;
 use Http\Client\Socket\Client;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Http\Message\UriFactory\GuzzleUriFactory;
@@ -15,6 +17,7 @@ trait Request
 {
 
     public $socket = null;
+
     /**
      * @param $uri
      * @param array $query
@@ -52,10 +55,11 @@ trait Request
      */
     public function jsonPost($uri, $body = null, $header = [])
     {
+        $uri = (new GuzzleUriFactory())->createUri($this->baseUri)->withPath($uri);
         $request = (new GuzzleMessageFactory())->createRequest(
             'POST',
             $uri,
-            array_merge(['Accept' => "application/json"], $header),
+            array_merge(['Accept' => "application/json",'Content-Type'=> "application/json"], $header),
             json_encode($body)
         );
         return $this->request($request);
@@ -87,12 +91,16 @@ trait Request
 
     protected function getBaseUri(): string
     {
-        return property_exists($this, 'baseUrl') ? $this->baseUri : '';
+        return property_exists($this, 'baseUri') ? $this->baseUri : '';
     }
 
     protected function getHttpClient(array $options = [])
     {
-        return new Client(null, $options);
+        $contentLengthPlugin = new ContentLengthPlugin();
+        return new PluginClient(
+            new Client(null, $options),
+            [$contentLengthPlugin]
+        );
     }
 
     protected function getUriParse()
