@@ -130,12 +130,36 @@ class Client
             return $this->jsonPost($uri, $payload);
         }
 
-        $this->jsonPost($uri, $payload, [
+        return $this->jsonPost($uri, $payload, [
             'Connection' => 'Upgrade',
             'Upgrade'    => 'tcp'
         ]);
-        return;
+    }
 
+    /**
+     * @param string $execId
+     * @param int $h
+     * @param int $w
+     * @return ResponseInterface
+     */
+    public function resizeExec(string $execId, $h = 25, $w = 80)
+    {
+        $uri = $this->uriParse->expand(
+            '/exec/{execId}/resize{?h,w}',compact('execId','h','w')
+        );
+        return $this->jsonPost($uri);
+    }
+
+    /**
+     * @param $execId
+     * @return mixed
+     */
+    public function inspectExec($execId)
+    {
+        $response = $this->get(
+            $this->uriParse->expand('/exec/{execId}/json', compact('execId'))
+        );
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
