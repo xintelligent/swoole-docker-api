@@ -25,14 +25,22 @@ class StdStreamParser
         $this->streamInterface = $stream;
     }
 
-    /** @deprecated  $size */
-    public function read($size = null)
+
+    public function read()
     {
         if (null === $this->size) {
             $chunk = $this->streamInterface->read(8);
+            if (!$chunk) {
+                return false;
+            }
             $this->parseSize($chunk);
         }
-        return $this->streamInterface->read($this->size);
+        $chunk = $this->streamInterface->read($this->size);
+        $this->size = null;
+        return [
+            'data' => $chunk,
+            'type' => $this->type
+        ];
     }
 
 
@@ -40,7 +48,7 @@ class StdStreamParser
     {
         // remove first 8 char
         $decoded = unpack('C1type/C3/N1size', $chunk);
-        $this->size = $decoded['size'] - 8;
+        $this->size = $decoded['size'];
         $this->type = $decoded['type'];
     }
 }
