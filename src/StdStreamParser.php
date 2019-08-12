@@ -15,10 +15,6 @@ class StdStreamParser
     const STD_ERR = 2;
     protected $size, $type = null;
     /**
-     * @var string
-     */
-    private $stream;
-    /**
      * @var StreamInterface
      */
     private $streamInterface;
@@ -29,38 +25,22 @@ class StdStreamParser
         $this->streamInterface = $stream;
     }
 
-    public function read($size = 1024)
+    /** @deprecated  $size */
+    public function read($size = null)
     {
-        $chunk = $this->streamInterface->read($size);
-
-
-        $this->stream .= $chunk;
-        if ($this->stream == '' || strlen($this->stream) < 8) {
-            $this->streamInterface->close();
-            return false;
+        if (null === $this->size) {
+            $chunk = $this->streamInterface->read(8);
+            $this->parseSize($chunk);
         }
-        if (null == $this->size) {
-            $header = substr($this->stream, 0, 8);
-            $decoded = \unpack('C1type/C3/N1size', $header);
-            $this->size = $decoded['size'];
-            $this->type = $decoded['type'];
-        }
-
-        return $this->shiftData();
+        return $this->streamInterface->read($this->size);
     }
 
-    public function shiftData()
+
+    public function parseSize($chunk)
     {
-        if (strlen($this->stream) < ($this->size + 8)) {
-            return true;
-        }
-        $data = [
-            'data' => (substr($this->stream, 8, $this->size)),
-            'type' => $this->type
-        ];
-        $this->stream = substr($this->stream, $this->size + 8);
-        $this->size = null;
-        $this->type = null;
-        return $data;
+        // remove first 8 char
+        $decoded = unpack('C1type/C3/N1size', $chunk);
+        $this->size = $decoded['size'] - 8;
+        $this->type = $decoded['type'];
     }
 }
