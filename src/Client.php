@@ -194,6 +194,19 @@ class Client
     }
 
     /**
+     * @param $containerID
+     * @param int $t
+     * @return mixed
+     */
+    public function containerStop($containerID, $t = 0)
+    {
+        $response = $this->post(
+            $this->uriParse->expand('/containers/{containerID}/stop{?t}', compact('containerID', 't'))
+        );
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
      * @param string $container
      * @return mixed
      * @throws \Http\Client\Exception
